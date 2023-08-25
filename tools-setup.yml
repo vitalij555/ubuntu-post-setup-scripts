@@ -26,10 +26,63 @@
         name: git
         state: present
 
-    - name: Install curl
+
+
+    - name: Install useful tools
       apt:
-        name: curl
+        name:
+          - terminator
+          - build-dep python-psycopg2
+          - dos2unix
+          - tldr
+          - xclip
+          - pinta
+          - poppler-utils
+          - sublime-text
+          - flameshot
+          - curl
+          - nodejs
+          - npm
+          - python3.10-venv
         state: present
+
+
+    - name: Install zsh
+      apt:
+        name: zsh
+        state: present
+
+    - name: Make zsh the default shell
+      command: chsh -s /bin/zsh {{ ansible_user }}
+      args:
+        warn: no
+      become_user: "{{ ansible_user }}"
+      when: ansible_facts['shell'] != "/bin/zsh"
+
+    - name: Install Oh-My-Zsh
+      shell: sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+      args:
+        creates: "~/.oh-my-zsh"
+      become_user: "{{ ansible_user }}"
+    
+    - name: Install popular plugins (example)
+      git:
+        repo: "https://github.com/{{ item.plugin_repo }}"
+        dest: "~/.oh-my-zsh/custom/plugins/{{ item.plugin_name }}"
+        depth: 1
+      loop:
+        - { plugin_name: 'zsh-autosuggestions', plugin_repo: 'zsh-users/zsh-autosuggestions' }
+        - { plugin_name: 'zsh-syntax-highlighting', plugin_repo: 'zsh-users/zsh-syntax-highlighting' }
+      become_user: "{{ ansible_user }}"
+
+    - name: Update .zshrc to load plugins
+      lineinfile:
+        path: "~/.zshrc"
+        backrefs: yes
+        regexp: '^plugins=\((.*)\)$'
+        line: 'plugins=(\1 zsh-autosuggestions zsh-syntax-highlighting)'
+      become_user: "{{ ansible_user }}"
+     
 
     - name: Install Vundle (Vim package manager)
       become: no
