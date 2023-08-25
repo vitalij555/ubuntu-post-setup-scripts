@@ -1,0 +1,76 @@
+---
+- hosts: localhost
+  become: yes
+  vars:
+    vim_user: your_username  # Replace with your username
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install Vim
+      apt:
+        name: vim
+        state: present
+
+    - name: Install ctags and cscope for tag navigation
+      apt:
+        name:
+          - exuberant-ctags
+          - cscope
+        state: present
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+
+    - name: Install curl
+      apt:
+        name: curl
+        state: present
+
+    - name: Install Vundle (Vim package manager)
+      become: no
+      git:
+        repo: 'https://github.com/VundleVim/Vundle.vim.git'
+        dest: "~{{ vim_user }}/.vim/bundle/Vundle.vim"
+        version: master
+        accept_hostkey: yes
+
+    - name: Configure .vimrc file
+      become: no
+      blockinfile:
+        path: "~{{ vim_user }}/.vimrc"
+        create: yes
+        block: |
+          set nocompatible
+          filetype off
+          set rtp+=~/.vim/bundle/Vundle.vim
+          call vundle#begin()
+
+          Plugin 'VundleVim/Vundle.vim'
+
+          " Add all your plugins here
+          Plugin 'preservim/nerdtree'          " File explorer
+          Plugin 'Xuyuanp/nerdtree-git-plugin' " Git integration for NERDTree
+          Plugin 'airblade/vim-gitgutter'      " Git integration
+          Plugin 'preservim/nerdcommenter'     " For easy code commenting
+          Plugin 'jiangmiao/auto-pairs'        " For pairing brackets, quotes, etc.
+          Plugin 'scrooloose/syntastic'        " Syntax checking
+          Plugin 'vim-airline/vim-airline'     " Status bar
+          Plugin 'vim-airline/vim-airline-themes' " Themes for status bar
+          Plugin 'itchyny/lightline.vim'       " Lightweight status line
+          Plugin 'vim-scripts/taglist.vim'     " Source code browser (requires ctags)
+
+          call vundle#end()
+          filetype plugin indent on
+
+          " Further custom vimrc configurations can go here
+
+    - name: Install Vim plugins
+      become: no
+      shell: vim +PluginInstall +qall
+      args:
+        executable: /bin/bash

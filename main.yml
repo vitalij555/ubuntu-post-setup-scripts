@@ -1,0 +1,7 @@
+---
+
+
+#- import_playbook: editors-setup.yml
+#- import_playbook: tools-setup.yml
+#- import_playbook: docker-setup.yml
+- import_playbook: virtual_box-setup.yml

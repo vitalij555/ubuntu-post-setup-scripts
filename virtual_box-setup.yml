@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Update apt and autoremove
+      apt:
+        upgrade: 'yes'
+        update_cache: 'yes'
+        autoremove: 'yes'
+
+    - name: Install required system packages
+      apt: 
+        name: "{{ item }}" 
+        state: latest 
+        update_cache: yes
+      loop: ['dkms', 'software-properties-common', 'apt-transport-https']
+
+    - name: Download Oracle VBox public key
+      get_url:
+        url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+        dest: /tmp/oracle_vbox_2016.asc
+
+    - name: Add Oracle VBox public key
+      apt_key: 
+        file: /tmp/oracle_vbox_2016.asc
+        state: present
+
+    - name: Add VirtualBox repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian {{ ansible_distribution_release }} contrib
+        state: present
+
+    - name: Update apt and autoremove
+      apt:
+        update_cache: 'yes'
+
+    - name: Install VirtualBox
+      apt: 
+        name: 'virtualbox' 
+        state: latest
